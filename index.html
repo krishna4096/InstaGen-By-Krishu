@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>InstaGen - AI Caption Creator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #050505;
+            --surface-color: rgba(255, 255, 255, 0.03);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --insta-grad: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --insta-grad-animated: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #f09433);
+            --btn-bg: #ffffff;
+            --btn-text: #000000;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --radius: 20px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 120px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient floating blobs */
+        .blob-1 {
+            position: fixed; top: -10%; left: -10%; width: 40vw; height: 40vw;
+            background: #bc1888; filter: blur(120px); opacity: 0.25;
+            border-radius: 50%; animation: float 12s infinite alternate ease-in-out; z-index: -1;
+        }
+        .blob-2 {
+            position: fixed; bottom: -10%; right: -10%; width: 50vw; height: 50vw;
+            background: #f09433; filter: blur(150px); opacity: 0.15;
+            border-radius: 50%; animation: float 15s infinite alternate-reverse ease-in-out; z-index: -1;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 20px;
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--insta-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 20px rgba(220, 39, 67, 0.3);
+        }
+
+        main {
+            padding: 24px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #e0e0e0;
+            letter-spacing: 0.5px;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--surface-border);
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: var(--transition);
+            resize: none;
+            outline: none;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        textarea:focus {
+            border-color: rgba(230, 104, 60, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(220, 39, 67, 0.15), inset 0 2px 10px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+
+        .input-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding: 0 8px;
+        }
+
+        .char-count { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+        .clear-btn { font-size: 13px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; cursor: pointer; border: none; background: transparent; transition: var(--transition); }
+        .clear-btn:hover { color: var(--danger); }
+
+        .sticky-btn-wrapper {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%; padding: 24px;
+            background: linear-gradient(to top, var(--bg-color) 80%, transparent);
+            z-index: 40; display: flex; justify-content: center;
+            pointer-events: none;
+        }
+
+        .generate-btn {
+            pointer-events: auto;
+            width: 100%; max-width: 550px;
+            background: var(--insta-grad-animated);
+            background-size: 200% auto;
+            color: white;
+            font-size: 18px; font-weight: 800; padding: 20px;
+            border-radius: 30px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(220, 39, 67, 0.4);
+            transition: var(--transition);
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            cursor: pointer;
+            animation: gradientMove 4s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .generate-btn:active { transform: scale(0.96) translateY(2px); box-shadow: 0 5px 15px rgba(220, 39, 67, 0.4); }
+        .generate-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; animation: none; filter: grayscale(50%); }
+
+        .spinner {
+            display: none; width: 24px; height: 24px;
+            border: 3px solid rgba(255,255,255,0.3); border-top-color: white;
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        #loading-container {
+            display: none; margin-top: 50px; text-align: center;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        .loading-title {
+            font-size: 22px; font-weight: 800; margin-bottom: 12px;
+            background: var(--insta-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse { 0% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1.02); } }
+        
+        .loading-subtitle { font-size: 15px; color: var(--text-secondary); margin-bottom: 30px; font-weight: 500; }
+        
+        .progress-track {
+            width: 100%; height: 8px; background: var(--surface-color);
+            border-radius: 20px; overflow: hidden; position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .progress-fill {
+            height: 100%; width: 30%; background: var(--insta-grad);
+            border-radius: 20px; position: absolute; left: -30%;
+            animation: loadingProgress 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes loadingProgress {
+            0% { left: -30%; width: 30%; }
+            50% { left: 40%; width: 50%; }
+            100% { left: 100%; width: 30%; }
+        }
+
+        #results-container {
+            display: none; margin-top: 40px; padding-bottom: 40px;
+        }
+
+        .section-title { font-size: 20px; font-weight: 800; margin: 30px 0 16px; display: flex; align-items: center; gap: 10px; color: #fff; }
+
+        .card {
+            background: var(--surface-color); border: 1px solid var(--surface-border);
+            border-radius: 24px; padding: 24px; margin-bottom: 16px; position: relative;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition);
+            opacity: 0; transform: translateY(20px);
+        }
+
+        .card.show {
+            opacity: 1; transform: translateY(0);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .card-text { font-size: 16px; line-height: 1.7; white-space: pre-wrap; margin-bottom: 48px; color: #f5f5f5; }
+
+        .copy-btn {
+            position: absolute; bottom: 16px; right: 16px;
+            background: rgba(255, 255, 255, 0.08); color: var(--text-primary);
+            padding: 10px 20px; border-radius: 30px; font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; gap: 8px; transition: var(--transition);
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .copy-btn:active { transform: scale(0.95); }
+
+        .credit-text {
+            text-align: center; margin-top: 50px; margin-bottom: 20px; font-size: 15px; color: var(--text-secondary); font-weight: 500;
+        }
+
+        .kavya-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2em;
+            font-weight: 800;
+            font-style: italic;
+            background: var(--insta-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            animation: textGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes textGlow {
+            from { text-shadow: 0 0 10px rgba(230, 104, 60, 0.2); }
+            to { text-shadow: 0 0 20px rgba(220, 39, 67, 0.6); }
+        }
+
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast {
+            background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            color: white; padding: 14px 28px; border-radius: 30px; font-size: 15px; font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.success { border-left: 4px solid var(--success); }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px) scale(0.95); } }
+        svg { width: 20px; height: 20px; fill: currentColor; }
+        .copy-icon { width: 18px; height: 18px; }
+
+        /* Auth Modal CSS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 100; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: var(--transition);
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal {
+            background: rgba(15, 15, 15, 0.95); border: 1px solid var(--surface-border);
+            width: 90%; max-width: 360px; border-radius: 30px; padding: 30px;
+            transform: translateY(30px) scale(0.95); transition: var(--transition);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+        
+        .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; color: white; }
+        
+        .auth-input {
+            width: 100%; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255,255,255,0.1);
+            color: white; padding: 18px; border-radius: 20px; font-size: 18px; font-weight: 600;
+            text-align: center; margin-bottom: 20px; outline: none; transition: var(--transition);
+        }
+        
+        .auth-input:focus { border-color: #bc1888; background: rgba(255, 255, 255, 0.08); box-shadow: 0 0 15px rgba(188, 24, 136, 0.3); }
+
+        .auth-btns { display: flex; gap: 12px; }
+        
+        .auth-btn-cancel {
+            flex: 1; background: rgba(255,255,255,0.1); color: white; border: none;
+            padding: 16px; border-radius: 20px; font-weight: 700; cursor: pointer; transition: var(--transition);
+        }
+        
+        .auth-btn-submit {
+            flex: 2; background: var(--insta-grad); color: white; border: none;
+            padding: 16px; border-radius: 20px; font-weight: 800; cursor: pointer; font-size: 16px;
+            box-shadow: 0 5px 15px rgba(220, 39, 67, 0.3); transition: var(--transition);
+        }
+        
+        .auth-btn-cancel:active { transform: scale(0.95); }
+        .auth-btn-submit:active { transform: scale(0.95); }
+
+    </style>
+</head>
+<body>
+    <div class="blob-1"></div>
+    <div class="blob-2"></div>
+
+    <header>
+        <div class="logo">InstaGen.</div>
+    </header>
+
+    <main>
+        <div class="input-group">
+            <label for="topic">What's your post about?</label>
+            <textarea id="topic" rows="4" placeholder=""></textarea>
+            <div class="input-tools">
+                <span class="char-count"><span id="charCount">0</span> / 500</span>
+                <button class="clear-btn" onclick="clearInput()">Clear</button>
+            </div>
+        </div>
+        
+        <div id="loading-container">
+            <div class="loading-title">✨ Wait for magic...</div>
+            <div class="loading-subtitle">Krishu AI is finding the best captions for you</div>
+            <div class="progress-track">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div id="results-container"></div>
+
+        <div class="credit-text">
+            Made By <span style="color: white; font-weight: 700;">Krishu</span> For <span class="kavya-text">Kavya</span>
+        </div>
+    </main>
+
+    <div class="sticky-btn-wrapper">
+        <button class="generate-btn" id="generateBtn" onclick="handleGenerateClick()">
+            <span class="btn-text">Generate Magic</span>
+            <div class="spinner" id="btnSpinner"></div>
+        </button>
+    </div>
+
+    <!-- Password Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal" id="authModalContent">
+            <div class="modal-title">Secret Code 🔒</div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">For whom was this app created?</p>
+            <input type="text" id="secretKey" class="auth-input" placeholder="Enter name..." autocomplete="off" onkeypress="handleAuthKeyPress(event)">
+            <div class="auth-btns">
+                <button class="auth-btn-cancel" onclick="closeAuthModal()">Cancel</button>
+                <button class="auth-btn-submit" onclick="verifyPassword()">Unlock Magic</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // API Configuration
+        const API_KEY = "AIzaSyCZenGkXw-nVmF79AWNtRf1WkmVmTOOQuM";
+        // Base URL for Google Gemini API
+        const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
+        const MODEL_NAME = "gemini-2.5-flash"; // Hardcoded model
+        
+        // DOM Elements
+        const topicInput = document.getElementById('topic');
+        const charCount = document.getElementById('charCount');
+        const generateBtn = document.getElementById('generateBtn');
+        const btnText = document.querySelector('.btn-text');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const resultsContainer = document.getElementById('results-container');
+        const loadingContainer = document.getElementById('loading-container');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // Placeholder Typewriter Effect
+        const placeholderExamples = [
+            "e.g., A relaxing weekend getaway in the mountains 🏔️",
+            "e.g., Sunday brunch vibes with my favorite people 🥞",
+            "e.g., Hitting a new personal record at the gym today! 💪",
+            "e.g., Golden hour selfies at the beach 🌅",
+            "e.g., Trying out a new aesthetic cafe in the city ☕"
+        ];
+        
+        let exampleIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function typePlaceholder() {
+            const currentText = placeholderExamples[exampleIndex];
+            
+            if (isDeleting) {
+                topicInput.setAttribute('placeholder', currentText.substring(0, charIndex - 1));
+                charIndex--;
+            } else {
+                topicInput.setAttribute('placeholder', currentText.substring(0, charIndex + 1));
+                charIndex++;
+            }
+
+            let typeSpeed = 60; // Typing speed
+            if (isDeleting) typeSpeed = 30; // Deleting is faster
+
+            if (!isDeleting && charIndex === currentText.length) {
+                typeSpeed = 2000; // Pause at the end before deleting
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                exampleIndex = (exampleIndex + 1) % placeholderExamples.length;
+                typeSpeed = 500; // Pause before typing next word
+            }
+
+            setTimeout(typePlaceholder, typeSpeed);
+        }
+
+        // Start the typing effect
+        setTimeout(typePlaceholder, 500);
+
+        topicInput.addEventListener('input', function() {
+            if(this.value.length > 500) this.value = this.value.substring(0, 500);
+            charCount.textContent = this.value.length;
+        });
+
+        function clearInput() {
+            topicInput.value = '';
+            charCount.textContent = '0';
+            topicInput.focus();
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' 
+                ? '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
+                : '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function setLoading(isLoading) {
+            generateBtn.disabled = isLoading;
+            if (isLoading) {
+                btnText.style.display = 'none';
+                btnSpinner.style.display = 'block';
+                loadingContainer.style.display = 'block';
+                resultsContainer.style.display = 'none';
+            } else {
+                btnText.style.display = 'block';
+                btnSpinner.style.display = 'none';
+                loadingContainer.style.display = 'none';
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) showToast('Copied to clipboard!');
+                else showToast('Failed to copy', 'error');
+            } catch (err) {
+                showToast('Browser does not support copying', 'error');
+            }
+            document.body.removeChild(textArea);
+        };
+
+        // --- Authentication Logic ---
+        let isAuthenticated = false;
+
+        function handleGenerateClick() {
+            if (isAuthenticated) {
+                startAIGeneration();
+            } else {
+                document.getElementById('authModal').classList.add('active');
+                setTimeout(() => document.getElementById('secretKey').focus(), 300);
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.getElementById('secretKey').value = '';
+        }
+
+        function verifyPassword() {
+            const key = document.getElementById('secretKey').value.trim().toLowerCase();
+            if (key === 'kavya') {
+                isAuthenticated = true;
+                closeAuthModal();
+                showToast('Welcome Kavya! ✨', 'success');
+                setTimeout(() => startAIGeneration(), 400); // Start generation slightly after modal closes
+            } else {
+                showToast('Incorrect! Access Denied.', 'error');
+                // Shake Animation
+                const modal = document.getElementById('authModalContent');
+                modal.style.transform = 'translateY(0) scale(1) translateX(10px)';
+                setTimeout(() => modal.style.transform = 'translateY(0) scale(1) translateX(-10px)', 100);
+                setTimeout(() => modal.style.transform = 'translateY(0) scale(1) translateX(10px)', 200);
+                setTimeout(() => modal.style.transform = 'translateY(0) scale(1) translateX(0)', 300);
+                document.getElementById('secretKey').value = '';
+                document.getElementById('secretKey').focus();
+            }
+        }
+
+        function handleAuthKeyPress(e) {
+            if (e.key === 'Enter') verifyPassword();
+        }
+        // -----------------------------
+
+        async function startAIGeneration() {
+            const topic = topicInput.value.trim();
+            if (!topic) {
+                showToast('Please enter a topic first!', 'error');
+                topicInput.focus();
+                return;
+            }
+
+            const apiUrl = `${API_BASE_URL}${MODEL_NAME}:generateContent?key=${API_KEY}`;
+
+            setLoading(true);
+            
+            // Scroll to loading container
+            setTimeout(() => loadingContainer.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+
+            // OPTIMIZED PROMPT: Shortened to save input tokens, and enforces short outputs.
+            const userPrompt = `Topic: ${topic}\nWrite ultra-short, catchy IG captions. Max 1-2 lines each. Use emojis. Add exactly 3 hashtags at the end. Keep it very brief.\nReturn ONLY JSON:\n{\n"captions": ["<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3"],\n"short_caption": "<max 6 words> #tag"\n}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: userPrompt }]
+                        }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            maxOutputTokens: 800 // FIX: Increased to 800. 300 was too low and cutting off the JSON at the end!
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.error?.message || `Status: ${response.status} ${response.statusText}`;
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                let contentString = data.candidates[0].content.parts[0].text.trim();
+                
+                // NAYA CODE: Pehle seedha parse karne ki koshish karega, fail hone par regex chalayega
+                let parsedData;
+                try {
+                    parsedData = JSON.parse(contentString);
+                } catch (parseError) {
+                    const jsonMatch = contentString.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        parsedData = JSON.parse(jsonMatch[0]);
+                    } else {
+                        throw new Error("AI did not return valid JSON format.");
+                    }
+                }
+
+                renderResults(parsedData);
+                
+                resultsContainer.style.display = 'block';
+                setTimeout(() => resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                showToast('Magic generated successfully!');
+
+            } catch (error) {
+                console.error("API Error:", error);
+                const toastMsg = error.message.includes('JSON') ? 'Failed to parse AI response' : `Error: ${error.message}`;
+                showToast(toastMsg, 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        const copyIconSvg = `<svg class="copy-icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+
+        function renderResults(data) {
+            resultsContainer.innerHTML = '';
+            
+            // Helper to create card with animation delay
+            const createCard = (content, delayIndex, title = null) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.transitionDelay = `${delayIndex * 0.1}s`;
+                
+                let html = title ? `<div style="font-size:13px; color:var(--insta-grad); margin-bottom:12px; font-weight:800; text-transform:uppercase; letter-spacing: 1px;">${title}</div>` : '';
+                
+                html += `<div class="card-text">${escapeHTML(content)}</div>`;
+                html += `<button class="copy-btn" onclick="copyContent(this)">${copyIconSvg} Copy</button>`;
+                card.innerHTML = html;
+                
+                // Trigger animation after slightly delaying to allow DOM to update
+                setTimeout(() => {
+                    card.classList.add('show');
+                }, 50);
+                
+                return card;
+            };
+
+            let delayCounter = 0;
+
+            if (data.captions?.length > 0) {
+                // Fix: using insertAdjacentHTML prevents wiping out DOM nodes
+                resultsContainer.insertAdjacentHTML('beforeend', `<div class="section-title" style="animation: fadeIn 0.5s ease forwards;">✨ Top SEO Picks</div>`);
+                data.captions.forEach((cap, i) => {
+                    resultsContainer.appendChild(createCard(cap, delayCounter++, `Option ${i + 1}`));
+                });
+            }
+            if (data.short_caption) {
+                // Fix: using insertAdjacentHTML prevents wiping out DOM nodes
+                resultsContainer.insertAdjacentHTML('beforeend', `<div class="section-title" style="margin-top: 40px; animation: fadeIn 0.5s ease forwards;">⚡ Short & Sweet</div>`);
+                resultsContainer.appendChild(createCard(data.short_caption, delayCounter++));
+            }
+        }
+
+        function escapeHTML(str) {
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
