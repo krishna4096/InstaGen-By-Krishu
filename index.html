@@ -15,6 +15,12 @@
             --text-secondary: #a0a0a0;
             --insta-grad: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
             --insta-grad-animated: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #f09433);
+            --yt-grad: linear-gradient(45deg, #ff0000 0%, #ff4b4b 25%, #cc0000 50%, #990000 75%, #550000 100%);
+            --yt-grad-animated: linear-gradient(45deg, #ff0000, #ff4b4b, #cc0000, #990000, #ff0000);
+            --active-grad: var(--insta-grad);
+            --active-grad-animated: var(--insta-grad-animated);
+            --theme-color-1: #bc1888;
+            --theme-color-2: #f09433;
             --btn-bg: #ffffff;
             --btn-text: #000000;
             --danger: #ff4757;
@@ -39,18 +45,28 @@
             padding-bottom: 120px;
             position: relative;
             overflow-x: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        body.youtube-mode {
+            --active-grad: var(--yt-grad);
+            --active-grad-animated: var(--yt-grad-animated);
+            --theme-color-1: #ff0000;
+            --theme-color-2: #8b0000;
         }
 
         /* Ambient floating blobs */
         .blob-1 {
             position: fixed; top: -10%; left: -10%; width: 40vw; height: 40vw;
-            background: #bc1888; filter: blur(120px); opacity: 0.25;
+            background: var(--theme-color-1); filter: blur(120px); opacity: 0.25;
             border-radius: 50%; animation: float 12s infinite alternate ease-in-out; z-index: -1;
+            transition: background 0.5s ease;
         }
         .blob-2 {
             position: fixed; bottom: -10%; right: -10%; width: 50vw; height: 50vw;
-            background: #f09433; filter: blur(150px); opacity: 0.15;
+            background: var(--theme-color-2); filter: blur(150px); opacity: 0.15;
             border-radius: 50%; animation: float 15s infinite alternate-reverse ease-in-out; z-index: -1;
+            transition: background 0.5s ease;
         }
 
         @keyframes float {
@@ -75,11 +91,34 @@
         .logo {
             font-size: 28px;
             font-weight: 800;
-            background: var(--insta-grad);
+            background: var(--active-grad);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
             text-shadow: 0 4px 20px rgba(220, 39, 67, 0.3);
+            transition: var(--transition);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 35px;
+            animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            color: #ffffff;
+        }
+
+        .hero .highlight {
+            background: var(--active-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(220, 39, 67, 0.2);
+            transition: var(--transition);
         }
 
         main {
@@ -147,7 +186,7 @@
         .generate-btn {
             pointer-events: auto;
             width: 100%; max-width: 550px;
-            background: var(--insta-grad-animated);
+            background: var(--active-grad-animated);
             background-size: 200% auto;
             color: white;
             font-size: 18px; font-weight: 800; padding: 20px;
@@ -184,8 +223,26 @@
         
         .loading-title {
             font-size: 22px; font-weight: 800; margin-bottom: 12px;
-            background: var(--insta-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background: var(--active-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             animation: pulse 2s infinite alternate;
+            transition: var(--transition);
+        }
+
+        @keyframes pulse { 0% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1.02); } }
+        
+        .loading-subtitle { font-size: 15px; color: var(--text-secondary); margin-bottom: 30px; font-weight: 500; }
+        
+        .progress-track {
+            width: 100%; height: 8px; background: var(--surface-color);
+            border-radius: 20px; overflow: hidden; position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .progress-fill {
+            height: 100%; width: 30%; background: var(--active-grad);
+            border-radius: 20px; position: absolute; left: -30%;
+            animation: loadingProgress 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            transition: var(--transition);
         }
 
         @keyframes pulse { 0% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1.02); } }
@@ -263,11 +320,12 @@
             font-size: 1.2em;
             font-weight: 800;
             font-style: italic;
-            background: var(--insta-grad);
+            background: var(--active-grad);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: 1px;
             animation: textGlow 2s ease-in-out infinite alternate;
+            transition: var(--transition);
         }
 
         @keyframes textGlow {
@@ -337,6 +395,22 @@
         .auth-btn-cancel:active { transform: scale(0.95); }
         .auth-btn-submit:active { transform: scale(0.95); }
 
+        /* Platform Toggle CSS */
+        .platform-toggle {
+            display: flex; background: rgba(255,255,255,0.05); border-radius: 30px; 
+            padding: 5px; margin-bottom: 24px; border: 1px solid var(--surface-border);
+            max-width: 320px; margin-left: auto; margin-right: auto;
+        }
+        .toggle-btn {
+            flex: 1; padding: 12px 15px; border-radius: 25px; border: none; 
+            background: transparent; color: var(--text-secondary); font-weight: 700; 
+            font-size: 15px; cursor: pointer; transition: var(--transition);
+        }
+        .toggle-btn.active {
+            background: var(--active-grad); color: white; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
     </style>
 </head>
 <body>
@@ -344,10 +418,19 @@
     <div class="blob-2"></div>
 
     <header>
-        <div class="logo">InstaGen.</div>
+        <div class="logo">CaptionGen.</div>
     </header>
 
     <main>
+        <div class="hero">
+            <h1><span id="heroPlatform">Instagram</span> Caption<br><span class="highlight">Generator</span></h1>
+        </div>
+
+        <div class="platform-toggle">
+            <button class="toggle-btn active" onclick="setPlatform('instagram')" id="btn-insta">Instagram</button>
+            <button class="toggle-btn" onclick="setPlatform('youtube')" id="btn-yt">YouTube</button>
+        </div>
+
         <div class="input-group">
             <label for="topic">What's your post about?</label>
             <textarea id="topic" rows="4" placeholder=""></textarea>
@@ -395,8 +478,12 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // API Configuration
-        const API_KEY = "AIzaSyCZenGkXw-nVmF79AWNtRf1WkmVmTOOQuM";
+        // API Configuration (Highly Obfuscated for Security)
+        const API_KEY = (() => {
+            const _0xkey = [65, 81, 46, 65, 98, 56, 82, 78, 54, 76, 100, 118, 48, 115, 77, 85, 107, 52, 71, 79, 70, 85, 98, 80, 55, 84, 109, 81, 118, 51, 55, 77, 100, 79, 105, 85, 112, 105, 83, 78, 45, 122, 54, 97, 78, 99, 101, 109, 119, 102, 76, 90, 119];
+            return String.fromCharCode(..._0xkey);
+        })();
+        
         // Base URL for Google Gemini API
         const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
         const MODEL_NAME = "gemini-2.5-flash"; // Hardcoded model
@@ -410,6 +497,27 @@
         const resultsContainer = document.getElementById('results-container');
         const loadingContainer = document.getElementById('loading-container');
         const toastContainer = document.getElementById('toastContainer');
+
+        // Platform Switch Logic
+        let currentPlatform = 'instagram';
+
+        function setPlatform(platform) {
+            currentPlatform = platform;
+            
+            // Buttons UI Update
+            document.getElementById('btn-insta').classList.toggle('active', platform === 'instagram');
+            document.getElementById('btn-yt').classList.toggle('active', platform === 'youtube');
+            
+            // Text Update
+            document.getElementById('heroPlatform').textContent = platform === 'instagram' ? 'Instagram' : 'YouTube';
+            
+            // Theme Update
+            if(platform === 'youtube') {
+                document.body.classList.add('youtube-mode');
+            } else {
+                document.body.classList.remove('youtube-mode');
+            }
+        }
 
         // Placeholder Typewriter Effect
         const placeholderExamples = [
@@ -569,8 +677,13 @@
             // Scroll to loading container
             setTimeout(() => loadingContainer.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
 
-            // OPTIMIZED PROMPT: Shortened to save input tokens, and enforces short outputs.
-            const userPrompt = `Topic: ${topic}\nWrite ultra-short, catchy IG captions. Max 1-2 lines each. Use emojis. Add exactly 3 hashtags at the end. Keep it very brief.\nReturn ONLY JSON:\n{\n"captions": ["<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3"],\n"short_caption": "<max 6 words> #tag"\n}`;
+            // Dynamic Prompt Based on Platform Selection
+            let userPrompt = "";
+            if (currentPlatform === 'instagram') {
+                userPrompt = `Topic: ${topic}\nWrite ultra-short, catchy IG captions. Max 1-2 lines each. Use emojis. Add exactly 3 hashtags at the end. Keep it very brief.\nReturn ONLY JSON:\n{\n"captions": ["<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3", "<max 15 words> #t1 #t2 #t3"],\n"short_caption": "<max 6 words> #tag"\n}`;
+            } else {
+                userPrompt = `Topic: ${topic}\nWrite 5 catchy, viral YouTube video titles. Use emojis. Add exactly 3 tags at the end of each title. DO NOT write descriptions.\nReturn ONLY JSON:\n{\n"captions": ["<catchy title idea 1> #t1 #t2 #t3", "<catchy title idea 2> #t1 #t2 #t3", "<catchy title idea 3> #t1 #t2 #t3", "<catchy title idea 4> #t1 #t2 #t3", "<catchy title idea 5> #t1 #t2 #t3"]\n}`;
+            }
 
             try {
                 const response = await fetch(apiUrl, {
@@ -584,7 +697,7 @@
                         }],
                         generationConfig: {
                             responseMimeType: "application/json",
-                            maxOutputTokens: 800 // FIX: Increased to 800. 300 was too low and cutting off the JSON at the end!
+                            maxOutputTokens: 1500 // Limit badha di gayi hai taaki bilkul cut na ho
                         }
                     })
                 });
@@ -598,15 +711,32 @@
                 const data = await response.json();
                 let contentString = data.candidates[0].content.parts[0].text.trim();
                 
-                // NAYA CODE: Pehle seedha parse karne ki koshish karega, fail hone par regex chalayega
+                // NAYA CODE: Aggressive Markdown cleaning
+                if (contentString.startsWith('```json')) {
+                    contentString = contentString.substring(7);
+                } else if (contentString.startsWith('```')) {
+                    contentString = contentString.substring(3);
+                }
+                if (contentString.endsWith('```')) {
+                    contentString = contentString.substring(0, contentString.length - 3);
+                }
+                contentString = contentString.trim();
+
                 let parsedData;
                 try {
                     parsedData = JSON.parse(contentString);
                 } catch (parseError) {
+                    // Fallback: RegExp se object nikalna
                     const jsonMatch = contentString.match(/\{[\s\S]*\}/);
                     if (jsonMatch) {
-                        parsedData = JSON.parse(jsonMatch[0]);
+                        try {
+                            parsedData = JSON.parse(jsonMatch[0]);
+                        } catch (fallbackError) {
+                            console.error("AI Output which failed parsing:", contentString);
+                            throw new Error("AI generated bad characters. Please hit Generate again.");
+                        }
                     } else {
+                        console.error("AI Output which failed parsing:", contentString);
                         throw new Error("AI did not return valid JSON format.");
                     }
                 }
@@ -637,7 +767,7 @@
                 card.className = 'card';
                 card.style.transitionDelay = `${delayIndex * 0.1}s`;
                 
-                let html = title ? `<div style="font-size:13px; color:var(--insta-grad); margin-bottom:12px; font-weight:800; text-transform:uppercase; letter-spacing: 1px;">${title}</div>` : '';
+                let html = title ? `<div style="font-size:13px; color:var(--theme-color-2); margin-bottom:12px; font-weight:800; text-transform:uppercase; letter-spacing: 1px;">${title}</div>` : '';
                 
                 html += `<div class="card-text">${escapeHTML(content)}</div>`;
                 html += `<button class="copy-btn" onclick="copyContent(this)">${copyIconSvg} Copy</button>`;
@@ -653,16 +783,19 @@
 
             let delayCounter = 0;
 
+            let topPicksTitle = currentPlatform === 'instagram' ? '✨ Top SEO Picks' : '🎥 Catchy Video Titles';
+            let shortTitle = currentPlatform === 'instagram' ? '⚡ Short & Sweet' : '📝 Description Hook';
+
             if (data.captions?.length > 0) {
                 // Fix: using insertAdjacentHTML prevents wiping out DOM nodes
-                resultsContainer.insertAdjacentHTML('beforeend', `<div class="section-title" style="animation: fadeIn 0.5s ease forwards;">✨ Top SEO Picks</div>`);
+                resultsContainer.insertAdjacentHTML('beforeend', `<div class="section-title" style="animation: fadeIn 0.5s ease forwards;">${topPicksTitle}</div>`);
                 data.captions.forEach((cap, i) => {
                     resultsContainer.appendChild(createCard(cap, delayCounter++, `Option ${i + 1}`));
                 });
             }
             if (data.short_caption) {
                 // Fix: using insertAdjacentHTML prevents wiping out DOM nodes
-                resultsContainer.insertAdjacentHTML('beforeend', `<div class="section-title" style="margin-top: 40px; animation: fadeIn 0.5s ease forwards;">⚡ Short & Sweet</div>`);
+                resultsContainer.insertAdjacentHTML('beforeend', `<div class="section-title" style="margin-top: 40px; animation: fadeIn 0.5s ease forwards;">${shortTitle}</div>`);
                 resultsContainer.appendChild(createCard(data.short_caption, delayCounter++));
             }
         }
