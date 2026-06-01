@@ -620,6 +620,16 @@
             document.body.removeChild(textArea);
         };
 
+        function copyContent(btnElement) {
+            const card = btnElement.closest('.card');
+            const textElement = card.querySelector('.card-text');
+            if (textElement) {
+                // Seedha text nikal kar fallback copy function ko bhej rahe hain
+                // taaki iframe/preview mein bhi perfectly copy ho jaye.
+                fallbackCopyTextToClipboard(textElement.innerText);
+            }
+        }
+
         // --- Authentication Logic ---
         let isAuthenticated = false;
 
